@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crear cuenta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --rose: #f43f72;
+            --peach: #ff8c5a;
+            --sky: #38bdf8;
+            --mint: #34d399;
+            --ink: #0f0c1a;
+            --glass: rgba(255, 255, 255, 0.06);
+            --glass2: rgba(255, 255, 255, 0.10);
+            --border: rgba(255, 255, 255, 0.12);
+            --border2: rgba(255, 255, 255, 0.22);
+            --text: #f0eeff;
+            --muted: rgba(240, 238, 255, 0.45);
+            --error: #fc8181;
+            --success: #68d391;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--ink);
+            font-family: 'Nunito', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 16px;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Canvas de partículas */
+        #canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Blobs de fondo */
+        .blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .blob-1 {
+            width: 520px;
+            height: 520px;
+            background: #7c3aed;
+            top: -160px;
+            left: -160px;
+            animation: drift 14s ease-in-out infinite alternate;
+        }
+
+        .blob-2 {
+            width: 400px;
+            height: 400px;
+            background: #be185d;
+            bottom: -100px;
+            right: -100px;
+            animation: drift 18s ease-in-out infinite alternate-reverse;
+        }
+
+        .blob-3 {
+            width: 300px;
+            height: 300px;
+            background: #0369a1;
+            top: 40%;
+            left: 55%;
+            animation: drift 11s ease-in-out infinite alternate;
+        }
+
+        @keyframes drift {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(40px, 30px) scale(1.08);
+            }
+        }
+
+        /* Tarjeta principal */
+        .card {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 660px;
+            background: var(--glass);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid var(--border2);
+            border-radius: 28px;
+            padding: 52px 48px 44px;
+            box-shadow:
+                0 32px 80px rgba(0, 0, 0, 0.55),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: slideUp .7s cubic-bezier(.22, 1, .36, 1) both;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Cabecera */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, rgba(244, 63, 114, .18), rgba(255, 140, 90, .18));
+            border: 1px solid rgba(244, 63, 114, .35);
+            border-radius: 99px;
+            padding: 6px 16px;
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--peach);
+            margin-bottom: 18px;
+        }
+
+        .badge::before {
+            content: '✦';
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.6rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.1;
+            letter-spacing: -1px;
+        }
+
+        h1 em {
+            font-style: normal;
+            background: linear-gradient(90deg, var(--rose), var(--peach));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            font-size: .88rem;
+            color: var(--muted);
+            font-weight: 300;
+        }
+
+        /* Separador de sección */
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: .68rem;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--sky);
+            margin: 32px 0 18px;
+        }
+
+        .section-title .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--sky);
+            box-shadow: 0 0 8px var(--sky);
+            flex-shrink: 0;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(56, 189, 248, .3), transparent);
+        }
+
+        /* Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* Campo */
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        label {
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--muted);
+            letter-spacing: .5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        label .req {
+            color: var(--rose);
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 15px;
+            opacity: .5;
+            pointer-events: none;
+            transition: opacity .2s;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px 12px 40px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .88rem;
+            font-weight: 400;
+            color: var(--text);
+            outline: none;
+            transition: border-color .25s, background .25s, box-shadow .25s;
+            -webkit-appearance: none;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(240, 238, 255, .2);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: rgba(244, 63, 114, .6);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(244, 63, 114, .12), 0 4px 20px rgba(0, 0, 0, .2);
+        }
+
+        .has-right {
+            padding-right: 44px;
+        }
+
+        input.is-error {
+            border-color: rgba(252, 129, 129, .6) !important;
+            box-shadow: 0 0 0 3px rgba(252, 129, 129, .12) !important;
+        }
+
+        select option {
+            background: #1a1030;
+            color: var(--text);
+        }
+
+        textarea {
+            padding-left: 14px;
+            resize: vertical;
+            min-height: 76px;
+        }
+
+        .err-msg {
+            font-size: .73rem;
+            color: var(--error);
+            display: none;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .err-msg.show {
+            display: flex;
+        }
+
+        .err-msg::before {
+            content: '⚠ ';
+            font-size: .7rem;
+        }
+
+        /* Password toggle */
+        .btn-eye {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            opacity: .45;
+            transition: opacity .2s;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .btn-eye:hover {
+            opacity: 1;
+        }
+
+        /* Barra de fuerza */
+        .strength-track {
+            height: 3px;
+            background: rgba(255, 255, 255, .08);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 4px;
+            width: 0;
+            transition: width .35s, background .35s;
+        }
+
+        .strength-label {
+            font-size: .68rem;
+            color: var(--muted);
+            margin-top: 3px;
+            height: 14px;
+            transition: color .3s;
+        }
+
+        /* Checkbox */
+        .check-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            margin-top: 10px;
+        }
+
+        .check-row input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            min-width: 17px;
+            margin-top: 1px;
+            accent-color: var(--rose);
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .check-row label {
+            font-size: .82rem;
+            color: var(--muted);
+            cursor: pointer;
+            line-height: 1.55;
+        }
+
+        .check-row label a {
+            color: var(--peach);
+            text-decoration: none;
+        }
+
+        .check-row label a:hover {
+            text-decoration: underline;
+        }
+
+        /* Botón submit */
+        .btn-submit {
+            position: relative;
+            width: 100%;
+            margin-top: 32px;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--rose) 0%, var(--peach) 100%);
+            border: none;
+            border-radius: 14px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            letter-spacing: .5px;
+            overflow: hidden;
+            transition: transform .15s, box-shadow .2s, opacity .2s;
+            box-shadow: 0 8px 28px rgba(244, 63, 114, .35);
+        }
+
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, .15), transparent);
+            opacity: 0;
+            transition: opacity .2s;
+        }
+
+        .btn-submit:hover:not(:disabled)::before {
+            opacity: 1;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 36px rgba(244, 63, 114, .45);
+        }
+
+        .btn-submit:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-submit:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, .3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .65s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn-submit.loading .btn-text {
+            display: none;
+        }
+
+        .btn-submit.loading .spinner {
+            display: block;
+        }
+
+        /* Footer */
+        .footer-link {
+            text-align: center;
+            margin-top: 22px;
+            font-size: .83rem;
+            color: var(--muted);
+        }
+
+        .footer-link a {
+            color: var(--peach);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .footer-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 12, 26, .92);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border2);
+            border-radius: 14px;
+            padding: 14px 28px;
+            font-size: .88rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: transform .45s cubic-bezier(.34, 1.56, .64, 1);
+            z-index: 9999;
+            min-width: 260px;
+            justify-content: center;
+            box-shadow: 0 16px 48px rgba(0, 0, 0, .5);
+            color: var(--text);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.ok {
+            border-color: rgba(104, 211, 145, .4);
+            color: var(--success);
+        }
+
+        .toast.err {
+            border-color: rgba(252, 129, 129, .4);
+            color: var(--error);
+        }
+
+        /* Responsive */
+        @media (max-width: 560px) {
+            .card {
+                padding: 36px 22px 32px;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="canvas"></canvas>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <div class="card">
+
+        <div class="header">
+            <div class="badge">Nuevo usuario</div>
+            <h1>Crea tu <em>cuenta</em></h1>
+            <p class="subtitle">Completa los datos para comenzar tu experiencia</p>
+        </div>
+
+        <form id="regForm" novalidate>
+
+            <div class="section-title"><span class="dot"></span>Datos personales</div>
+
+            <div class="grid-2">
+                <div class="field">
+                    <label for="nombre">Nombre <span class="req">*</span></label>
+                    <div class="input-wrap">
+                        <input type="text" id="nombre" placeholder="Juan" autocomplete="given-name" />
+                        <span class="input-icon">👤</span>
+                    </div>
+                    <span class="err-msg" id="err-nombre">Ingresa tu nombre</span>
+                </div>
+                <div class="field">
+                    <label for="apellido">Apellido <span class="req">*</span></label>
+                    <div class="input-wrap">
+                        <input type="text" id="apellido" placeholder="García" autocomplete="family-name" />
+                        <span class="input-icon">👤</span>
+                    </div>
+                    <span class="err-msg" id="err-apellido">Ingresa tu apellido</span>
+                </div>
+                <div class="field">
+                    <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                    <div class="input-wrap">
+                        <input type="date" id="fecha_nacimiento" />
+                        <span class="input-icon">🎂</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="genero">Género</label>
+                    <div class="input-wrap">
+                        <select id="genero">
+                            <option value="">Seleccionar...</option>
+                            <option value="masculino">Masculino</option>
+                            <option value="femenino">Femenino</option>
+                            <option value="no_binario">No binario</option>
+                            <option value="prefiero_no_decir">Prefiero no decir</option>
+                        </select>
+                        <span class="input-icon">⚧</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title"><span class="dot"></span>Contacto</div>
+
+            <div class="field" style="margin-bottom:16px">
+                <label for="email">Correo electrónico <span class="req">*</span></label>
+                <div class="input-wrap">
+                    <input type="email" id="email" placeholder="correo@ejemplo.com" autocomplete="email" />
+                    <span class="input-icon">✉️</span>
+                </div>
+                <span class="err-msg" id="err-email">Ingresa un email válido</span>
+            </div>
+            <div class="field">
+                <label for="telefono">Teléfono</label>
+                <div class="input-wrap">
+                    <input type="tel" id="telefono" placeholder="+57 300 123 4567" autocomplete="tel" />
+                    <span class="input-icon">📱</span>
+                </div>
+            </div>
+
+            <div class="section-title"><span class="dot"></span>Dirección</div>
+
+            <div class="grid-2" style="margin-bottom:16px">
+                <div class="field">
+                    <label for="pais">País</label>
+                    <div class="input-wrap">
+                        <select id="pais">
+                            <option value="">Seleccionar...</option>
+                            <option value="colombia">Colombia</option>
+                            <option value="mexico">México</option>
+                            <option value="argentina">Argentina</option>
+                            <option value="chile">Chile</option>
+                            <option value="peru">Perú</option>
+                            <option value="venezuela">Venezuela</option>
+                            <option value="ecuador">Ecuador</option>
+                            <option value="bolivia">Bolivia</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                        <span class="input-icon">🌎</span>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="ciudad">Ciudad</label>
+                    <div class="input-wrap">
+                        <input type="text" id="ciudad" placeholder="Medellín" />
+                        <span class="input-icon">🏙️</span>
+                    </div>
+                </div>
+            </div>
+            <div class="field">
+                <label for="direccion">Dirección</label>
+                <div class="input-wrap">
+                    <input type="text" id="direccion" placeholder="Calle 10 # 43A - 22" />
+                    <span class="input-icon">📍</span>
+                </div>
+            </div>
+
+            <div class="section-title"><span class="dot"></span>Seguridad</div>
+
+            <div class="grid-2">
+                <div class="field">
+                    <label for="password">Contraseña <span class="req">*</span></label>
+                    <div class="input-wrap">
+                        <input type="password" id="password" class="has-right" placeholder="Mínimo 8 caracteres"
+                            autocomplete="new-password" />
+                        <span class="input-icon">🔒</span>
+                        <button type="button" class="btn-eye" id="togglePass">👁</button>
+                    </div>
+                    <div class="strength-track">
+                        <div class="strength-fill" id="sFill"></div>
+                    </div>
+                    <div class="strength-label" id="sLabel"></div>
+                    <span class="err-msg" id="err-password">Mínimo 8 caracteres</span>
+                </div>
+                <div class="field">
+                    <label for="confirm">Confirmar contraseña <span class="req">*</span></label>
+                    <div class="input-wrap">
+                        <input type="password" id="confirm" class="has-right" placeholder="Repite la contraseña"
+                            autocomplete="new-password" />
+                        <span class="input-icon">🔑</span>
+                        <button type="button" class="btn-eye" id="toggleConfirm">👁</button>
+                    </div>
+                    <span class="err-msg" id="err-confirm">Las contraseñas no coinciden</span>
+                </div>
+            </div>
+
+            <div class="check-row" style="margin-top:22px">
+                <input type="checkbox" id="terminos" />
+                <label for="terminos">
+                    He leído y acepto los <a href="#">Términos de servicio</a> y la <a href="#">Política de
+                        privacidad</a> <span class="req">*</span>
+                </label>
+            </div>
+            <span class="err-msg" id="err-terminos" style="margin-top:6px">Debes aceptar los términos para
+                continuar</span>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <span class="btn-text">Crear mi cuenta →</span>
+                <div class="spinner"></div>
+            </button>
+
+            <p class="footer-link">¿Ya tienes cuenta? <a href="#">Inicia sesión aquí</a></p>
+
+        </form>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- ════════════════════════════════════════
+     REEMPLAZA TUS CREDENCIALES AQUÍ
+     ════════════════════════════════════════ -->
+    <script>
+        const SUPABASE_URL = 'https://oqldhuqgkrzwyznmigee.supabase.co';  // ← reemplaza
+        const SUPABASE_KEY = 'sb_publishable_XGL_57lamAIO0-b2Nm_LLg_9Yxen53_';                  // ← reemplaza
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        /* Supabase */
+        const { createClient } = supabase;
+        const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        /* Partículas */
+        (function () {
+            const cv = document.getElementById('canvas');
+            const ctx = cv.getContext('2d');
+            let W, H, pts = [];
+
+            function resize() { W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }
+            resize();
+            window.addEventListener('resize', resize);
+
+            for (let i = 0; i < 65; i++) {
+                pts.push({
+                    x: Math.random() * 2000, y: Math.random() * 2000,
+                    r: Math.random() * 1.5 + .4,
+                    vx: (Math.random() - .5) * .4, vy: (Math.random() - .5) * .4,
+                    a: Math.random() * Math.PI * 2
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+                pts.forEach(p => {
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+                    if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+                    p.a += .009;
+                    const alpha = .1 + .12 * Math.sin(p.a);
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(244,63,114,${alpha})`;
+                    ctx.fill();
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        })();
+
+        /* Toggles contraseña */
+        function makeToggle(btnId, inputId) {
+            document.getElementById(btnId).addEventListener('click', () => {
+                const inp = document.getElementById(inputId);
+                const btn = document.getElementById(btnId);
+                inp.type = inp.type === 'password' ? 'text' : 'password';
+                btn.textContent = inp.type === 'text' ? '🙈' : '👁';
+            });
+        }
+        makeToggle('togglePass', 'password');
+        makeToggle('toggleConfirm', 'confirm');
+
+        /* Fuerza de contraseña */
+        const fill = document.getElementById('sFill');
+        const slabel = document.getElementById('sLabel');
+        const levels = [
+            { color: '#fc8181', label: 'Muy débil', w: '20%' },
+            { color: '#f6ad55', label: 'Débil', w: '40%' },
+            { color: '#f6e05e', label: 'Regular', w: '60%' },
+            { color: '#68d391', label: 'Fuerte', w: '80%' },
+            { color: '#38bdf8', label: 'Muy fuerte', w: '100%' },
+        ];
+
+        document.getElementById('password').addEventListener('input', e => {
+            const v = e.target.value;
+            let score = 0;
+            if (v.length >= 8) score++;
+            if (v.length >= 12) score++;
+            if (/[A-Z]/.test(v)) score++;
+            if (/[0-9]/.test(v)) score++;
+            if (/[^A-Za-z0-9]/.test(v)) score++;
+            score = Math.min(score, 5);
+            if (!v) { fill.style.width = '0'; slabel.textContent = ''; return; }
+            const l = levels[score - 1] || levels[0];
+            fill.style.width = l.w; fill.style.background = l.color;
+            slabel.textContent = l.label; slabel.style.color = l.color;
+        });
+
+        /* Validación */
+        function setErr(id, show) {
+            const el = document.getElementById('err-' + id);
+            if (el) el.classList.toggle('show', show);
+            const inp = document.getElementById(id);
+            if (inp) inp.classList.toggle('is-error', show);
+        }
+        function clearAll() {
+            ['nombre', 'apellido', 'email', 'password', 'confirm', 'terminos'].forEach(f => setErr(f, false));
+        }
+
+        /* Toast */
+        function toast(msg, type = 'ok') {
+            const t = document.getElementById('toast');
+            t.textContent = (type === 'ok' ? '✓  ' : '✗  ') + msg;
+            t.className = 'toast ' + type;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 4200);
+        }
+
+        /* Submit */
+        document.getElementById('regForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            clearAll();
+
+            const nombre = document.getElementById('nombre').value.trim();
+            const apellido = document.getElementById('apellido').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const fecha_nacimiento = document.getElementById('fecha_nacimiento').value;
+            const genero = document.getElementById('genero').value;
+            const pais = document.getElementById('pais').value;
+            const ciudad = document.getElementById('ciudad').value.trim();
+            const direccion = document.getElementById('direccion').value.trim();
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm').value;
+            const terminos = document.getElementById('terminos').checked;
+
+            let ok = true;
+            if (!nombre) { setErr('nombre', true); ok = false; }
+            if (!apellido) { setErr('apellido', true); ok = false; }
+            if (!email || !/\S+@\S+\.\S+/.test(email)) { setErr('email', true); ok = false; }
+            if (password.length < 8) { setErr('password', true); ok = false; }
+            if (password !== confirm) { setErr('confirm', true); ok = false; }
+            if (!terminos) { setErr('terminos', true); ok = false; }
+            if (!ok) return;
+
+            const btn = document.getElementById('submitBtn');
+            btn.classList.add('loading'); btn.disabled = true;
+
+            try {
+                const { error: authErr } = await db.auth.signUp({ email, password });
+                if (authErr) throw authErr;
+
+                const { error: dbErr } = await db.from('usuarios').insert([{
+                    nombre, apellido, email,
+                    telefono: telefono || null,
+                    fecha_nacimiento: fecha_nacimiento || null,
+                    genero: genero || null,
+                    pais: pais || null,
+                    ciudad: ciudad || null,
+                    direccion: direccion || null,
+                }]);
+                if (dbErr) throw dbErr;
+
+                toast('¡Cuenta creada! Revisa tu correo 🎉');
+                document.getElementById('regForm').reset();
+                fill.style.width = '0'; slabel.textContent = '';
+
+            } catch (err) {
+                console.error(err);
+                const msg = err.message?.includes('already registered')
+                    ? 'Este correo ya está registrado.'
+                    : err.message || 'Ocurrió un error, intenta de nuevo.';
+                toast(msg, 'err');
+            } finally {
+                btn.classList.remove('loading'); btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
